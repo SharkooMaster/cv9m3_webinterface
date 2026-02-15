@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Google.Protobuf" Version="3.29.3" />
+    <PackageReference Include="Grpc.Net.Client" Version="2.67.0" />
+    <PackageReference Include="Grpc.Tools" Version="2.69.0">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.8" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+    <PackageReference Include="Npgsql" Version="10.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Protobuf Include="Protos\CompressFile.proto" GrpcServices="Client" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\cross\cross.csproj" />
+  </ItemGroup>
+
+  <!-- Avoid duplicate appsettings from referenced Cross project -->
+  <Target Name="ExcludeCrossAppSettings" BeforeTargets="GetCopyToPublishDirectoryItems">
+    <ItemGroup>
+      <_CrossAppSettings Include="..\cross\appsettings*.json" />
+      <ResolvedFileToPublish Remove="@(_CrossAppSettings)" />
+    </ItemGroup>
+  </Target>
+
+</Project>

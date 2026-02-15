@@ -1,0 +1,14 @@
+bin/
+obj/
+out/
+*.user
+*.suo
+*.cache
+appsettings.Development.json
+.vs/
+
+
+
+
+
+

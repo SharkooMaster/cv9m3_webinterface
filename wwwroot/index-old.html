@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CrossV9 Compression - MVP</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #f8f9ff;
+        }
+
+        .upload-area:hover {
+            border-color: #764ba2;
+            background: #f0f2ff;
+        }
+
+        .upload-area.dragover {
+            border-color: #764ba2;
+            background: #e8ebff;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin: 10px 5px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            font-size: 0.9em;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+
+        .stat-card .value {
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .result.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .result.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .progress {
+            width: 100%;
+            height: 30px;
+            background: #e9ecef;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 CrossV9 Compression System</h1>
+            <p>Semantic Deduplication & Compression - MVP Testing Interface</p>
+        </div>
+
+        <div class="card">
+            <h2>Upload File for Compression</h2>
+            <div class="upload-area" id="uploadArea">
+                <p style="font-size: 1.2em; margin-bottom: 10px;">📁 Drop file here or click to browse</p>
+                <p style="color: #666;">Supports files up to 1GB</p>
+                <input type="file" id="fileInput">
+            </div>
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="btn" id="compressBtn" disabled>Compress</button>
+                <button class="btn btn-secondary" id="refreshStatsBtn">Refresh Statistics</button>
+            </div>
+            <div class="progress" id="progress">
+                <div class="progress-bar" id="progressBar">Processing...</div>
+            </div>
+            <div class="result" id="result"></div>
+        </div>
+
+        <div class="card">
+            <h2>📊 Summary Statistics</h2>
+            <div class="stats-grid" id="summaryStats">
+                <div class="stat-card">
+                    <h3>Total Compressions</h3>
+                    <div class="value" id="totalCompressions">-</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Avg Compression Ratio</h3>
+                    <div class="value" id="avgRatio">-</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Total Savings</h3>
+                    <div class="value" id="totalSavings">-</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Avg Duration</h3>
+                    <div class="value" id="avgDuration">-</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>📈 Recent Compressions</h2>
+            <table id="statsTable">
+                <thead>
+                    <tr>
+                        <th>Filename</th>
+                        <th>Original Size</th>
+                        <th>Compressed Size</th>
+                        <th>Ratio</th>
+                        <th>Savings %</th>
+                        <th>Duration</th>
+                        <th>Time</th>
+                    </tr>
+                </thead>
+                <tbody id="statsBody">
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 40px;">No compressions yet</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const uploadArea = document.getElementById('uploadArea');
+        const compressBtn = document.getElementById('compressBtn');
+        const refreshStatsBtn = document.getElementById('refreshStatsBtn');
+        const progress = document.getElementById('progress');
+        const progressBar = document.getElementById('progressBar');
+        const result = document.getElementById('result');
+
+        let selectedFile = null;
+        let lastCompressedUrl = null;
+        let lastCompressedName = null;
+
+        // File input handling
+        uploadArea.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', (e) => {
+            selectedFile = e.target.files[0];
+            compressBtn.disabled = !selectedFile;
+            if (selectedFile) {
+                uploadArea.innerHTML = `
+                    <p style="font-size: 1.2em; margin-bottom: 10px;">📄 ${selectedFile.name}</p>
+                    <p style="color: #666;">${formatBytes(selectedFile.size)}</p>
+                `;
+            }
+        });
+
+        // Drag and drop
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file) {
+                selectedFile = file;
+                fileInput.files = e.dataTransfer.files;
+                compressBtn.disabled = false;
+                uploadArea.innerHTML = `
+                    <p style="font-size: 1.2em; margin-bottom: 10px;">📄 ${file.name}</p>
+                    <p style="color: #666;">${formatBytes(file.size)}</p>
+                `;
+            }
+        });
+
+        // Compress button
+        compressBtn.addEventListener('click', async () => {
+            if (!selectedFile) return;
+
+            compressBtn.disabled = true;
+            progress.style.display = 'block';
+            progressBar.style.width = '30%';
+            result.style.display = 'none';
+
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+
+            try {
+                const response = await fetch('/api/compression/compress-binary', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                progressBar.style.width = '80%';
+                if (!response.ok) {
+                    const errText = await response.text();
+                    throw new Error(errText || 'Compression failed');
+                }
+
+                const blob = await response.blob();
+                const originalSize = Number(response.headers.get('X-Cross-Original-Size') || selectedFile.size || 0);
+                const compressedSize = Number(response.headers.get('X-Cross-Compressed-Size') || blob.size || 0);
+                const referencesFound = Number(response.headers.get('X-Cross-References-Found') || 0);
+                const totalChunks = Number(response.headers.get('X-Cross-Total-Chunks') || 0);
+
+                const ratio = originalSize > 0 ? (compressedSize / originalSize) : 0;
+                const savingsBytes = originalSize - compressedSize;
+                const savingsPercent = originalSize > 0 ? (savingsBytes / originalSize * 100) : 0;
+
+                if (lastCompressedUrl) URL.revokeObjectURL(lastCompressedUrl);
+                lastCompressedUrl = URL.createObjectURL(blob);
+                lastCompressedName =
+                    getDownloadNameFromContentDisposition(response.headers.get('content-disposition'))
+                    || (selectedFile.name + '.ccf');
+
+                progressBar.style.width = '100%';
+                setTimeout(() => {
+                    progress.style.display = 'none';
+                    showResult('success', `
+                        <h3>✅ Compression Successful!</h3>
+                        <p><strong>Original Size:</strong> ${formatBytes(originalSize)}</p>
+                        <p><strong>Compressed Size:</strong> ${formatBytes(compressedSize)}</p>
+                        <p><strong>Compression Ratio:</strong> ${(ratio * 100).toFixed(2)}%</p>
+                        <p><strong>Space Saved:</strong> ${formatBytes(savingsBytes)} (${savingsPercent.toFixed(2)}%)</p>
+                        <p><strong>References Found:</strong> ${referencesFound} / ${totalChunks}</p>
+                        <button class="btn" onclick="downloadLastCompressed()">Download Compressed</button>
+                    `);
+                    loadStatistics();
+                    compressBtn.disabled = false;
+                }, 250);
+            } catch (error) {
+                progress.style.display = 'none';
+                showResult('error', `<h3>❌ Error</h3><p>${error.message}</p>`);
+                compressBtn.disabled = false;
+            }
+        });
+
+        // Refresh statistics
+        refreshStatsBtn.addEventListener('click', () => {
+            loadStatistics();
+        });
+
+        // Load statistics on page load
+        loadStatistics();
+
+        async function loadStatistics() {
+            try {
+                const [summaryRes, statsRes] = await Promise.all([
+                    fetch('/api/compression/statistics/summary'),
+                    fetch('/api/compression/statistics?limit=50')
+                ]);
+
+                const summary = await summaryRes.json();
+                const stats = await statsRes.json();
+
+                // Update summary
+                document.getElementById('totalCompressions').textContent = summary.totalCompressions || 0;
+                document.getElementById('avgRatio').textContent = summary.averageCompressionRatio 
+                    ? (summary.averageCompressionRatio * 100).toFixed(1) + '%' : '-';
+                document.getElementById('totalSavings').textContent = formatBytes(
+                    (summary.totalOriginalSize || 0) - (summary.totalCompressedSize || 0)
+                );
+                document.getElementById('avgDuration').textContent = summary.averageDurationMs 
+                    ? summary.averageDurationMs.toFixed(0) + 'ms' : '-';
+
+                // Update table
+                const tbody = document.getElementById('statsBody');
+                if (stats.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px;">No compressions yet</td></tr>';
+                } else {
+                    tbody.innerHTML = stats.map(stat => `
+                        <tr>
+                            <td>${stat.fileName}</td>
+                            <td>${formatBytes(stat.originalSize)}</td>
+                            <td>${formatBytes(stat.compressedSize)}</td>
+                            <td>${(stat.compressionRatio * 100).toFixed(2)}%</td>
+                            <td>${stat.savingsPercent.toFixed(2)}%</td>
+                            <td>${stat.durationMs.toFixed(0)}ms</td>
+                            <td>${new Date(stat.timestamp).toLocaleString()}</td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Error loading statistics:', error);
+            }
+        }
+
+        function showResult(type, message) {
+            result.className = `result ${type}`;
+            result.innerHTML = message;
+            result.style.display = 'block';
+        }
+
+        function getDownloadNameFromContentDisposition(cd) {
+            if (!cd) return null;
+            const fnStar = cd.match(/filename\*\s*=\s*([^;]+)/i);
+            if (fnStar && fnStar[1]) {
+                const v = fnStar[1].trim();
+                const parts = v.split("''");
+                if (parts.length === 2) return decodeURIComponent(parts[1].replace(/(^"|"$)/g, ''));
+                return v.replace(/(^"|"$)/g, '');
+            }
+            const fn = cd.match(/filename\s*=\s*([^;]+)/i);
+            if (fn && fn[1]) return fn[1].trim().replace(/(^"|"$)/g, '');
+            return null;
+        }
+
+        function downloadLastCompressed() {
+            if (!lastCompressedUrl) return;
+            const a = document.createElement('a');
+            a.href = lastCompressedUrl;
+            a.download = lastCompressedName || 'compressed.ccf';
+            a.click();
+        }
+
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        }
+    </script>
+</body>
+</html>
+
