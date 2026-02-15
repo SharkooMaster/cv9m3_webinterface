@@ -22,9 +22,9 @@ jobs:
       - name: Checkout cross repo (for ProjectReference)
         uses: actions/checkout@v4
         with:
-          repository: ${{ github.repository_owner }}/cross
+          repository: ${{ vars.CROSS_REPO != '' && vars.CROSS_REPO || format('{0}/cross', github.repository_owner) }}
           path: buildctx/cross
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.CROSS_REPO_PAT != '' && secrets.CROSS_REPO_PAT || secrets.GITHUB_TOKEN }}
 
       - name: Prepare monorepo-like build context
         run: |
