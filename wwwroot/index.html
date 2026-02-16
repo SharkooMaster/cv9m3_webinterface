@@ -211,6 +211,8 @@
                 <div class="row">
                     <button class="btn secondary" id="pickFolderBtn">Pick Folder</button>
                     <input id="folderInput" type="file" webkitdirectory directory multiple>
+                    <label class="small" for="batchConcurrencyInput">Parallel files</label>
+                    <input id="batchConcurrencyInput" type="number" min="1" max="32" value="6" style="width: 86px; background:#111; border:1px solid #333; color:#eee; border-radius:8px; padding:8px;">
                     <button class="btn" id="startBatchBtn" disabled>Start Batch</button>
                 </div>
                 <div class="small" id="folderSummary">No files selected</div>
@@ -406,6 +408,7 @@
     const folderInput = document.getElementById("folderInput");
     const pickFolderBtn = document.getElementById("pickFolderBtn");
     const startBatchBtn = document.getElementById("startBatchBtn");
+    const batchConcurrencyInput = document.getElementById("batchConcurrencyInput");
     const folderSummary = document.getElementById("folderSummary");
     const batchStatus = document.getElementById("batchStatus");
     const batchBar = document.getElementById("batchBar");
@@ -445,6 +448,7 @@
     startBatchBtn.addEventListener("click", async () => {
         if (batchFiles.length === 0) return;
         startBatchBtn.disabled = true;
+        pickFolderBtn.disabled = true;
         batchTable.innerHTML = "";
         refsChart.data.labels = [];
         refsChart.data.datasets[0].data = [];
@@ -454,37 +458,60 @@
         ratioChart.update();
 
         let done = 0;
-        for (let i = 0; i < batchFiles.length; i++) {
-            const file = batchFiles[i];
-            batchStatus.textContent = `Processing ${i + 1}/${batchFiles.length}: ${file.name}`;
-            try {
-                const out = await compressFileBinary(file);
-                const ratio = out.original > 0 ? out.compressed / out.original : 0;
+        let failed = 0;
+        let active = 0;
+        let cursor = 0;
+        const requestedConcurrency = Number(batchConcurrencyInput.value || 6);
+        const maxConcurrency = Math.max(1, Math.min(32, requestedConcurrency, batchFiles.length));
 
-                refsChart.data.labels.push(String(i + 1));
-                refsChart.data.datasets[0].data.push(out.refs);
-                refsChart.update();
+        const updateBatchStatus = () => {
+            batchStatus.textContent = `Running: done ${done}/${batchFiles.length}, active ${active}, failed ${failed}, parallel ${maxConcurrency}`;
+        };
+        updateBatchStatus();
 
-                ratioChart.data.labels.push(String(i + 1));
-                ratioChart.data.datasets[0].data.push(Number(ratio.toFixed(3)));
-                ratioChart.update();
+        const runWorker = async () => {
+            while (true) {
+                const i = cursor++;
+                if (i >= batchFiles.length) break;
+                const file = batchFiles[i];
+                active++;
+                updateBatchStatus();
+                try {
+                    const out = await compressFileBinary(file);
+                    const ratio = out.original > 0 ? out.compressed / out.original : 0;
 
-                batchTable.insertAdjacentHTML(
-                    "beforeend",
-                    `<tr><td>${i + 1}</td><td>${file.webkitRelativePath || file.name}</td><td>${fmtBytes(out.original)}</td><td>${fmtBytes(out.compressed)}</td><td>${out.refs}</td><td class="ok">OK</td></tr>`
-                );
-            } catch (err) {
-                batchTable.insertAdjacentHTML(
-                    "beforeend",
-                    `<tr><td>${i + 1}</td><td>${file.webkitRelativePath || file.name}</td><td>${fmtBytes(file.size)}</td><td>-</td><td>-</td><td class="err">ERROR</td></tr>`
-                );
+                    refsChart.data.labels.push(String(i + 1));
+                    refsChart.data.datasets[0].data.push(out.refs);
+                    refsChart.update();
+
+                    ratioChart.data.labels.push(String(i + 1));
+                    ratioChart.data.datasets[0].data.push(Number(ratio.toFixed(3)));
+                    ratioChart.update();
+
+                    batchTable.insertAdjacentHTML(
+                        "beforeend",
+                        `<tr><td>${i + 1}</td><td>${file.webkitRelativePath || file.name}</td><td>${fmtBytes(out.original)}</td><td>${fmtBytes(out.compressed)}</td><td>${out.refs}</td><td class="ok">OK</td></tr>`
+                    );
+                } catch (err) {
+                    failed++;
+                    batchTable.insertAdjacentHTML(
+                        "beforeend",
+                        `<tr><td>${i + 1}</td><td>${file.webkitRelativePath || file.name}</td><td>${fmtBytes(file.size)}</td><td>-</td><td>-</td><td class="err">ERROR</td></tr>`
+                    );
+                } finally {
+                    done++;
+                    active--;
+                    setBar(batchBar, (done / batchFiles.length) * 100);
+                    updateBatchStatus();
+                }
             }
-            done++;
-            setBar(batchBar, (done / batchFiles.length) * 100);
-        }
+        };
 
-        batchStatus.textContent = `Batch done. ${done}/${batchFiles.length}`;
+        await Promise.all(Array.from({ length: maxConcurrency }, () => runWorker()));
+
+        batchStatus.textContent = `Batch done. ${done}/${batchFiles.length} (failed ${failed}, parallel ${maxConcurrency})`;
         startBatchBtn.disabled = false;
+        pickFolderBtn.disabled = false;
     });
 
     document.getElementById("loadStatsBtn").addEventListener("click", async () => {
