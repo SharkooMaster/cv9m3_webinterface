@@ -3,1220 +3,508 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CrossV9 Compression - MVP</title>
+    <title>CrossV9 Interface</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --bg: #050505;
+            --panel: #0e0e0e;
+            --panel-2: #151515;
+            --line: #2c2c2c;
+            --text: #f5f5f5;
+            --muted: #a2a2a2;
         }
-
+        * { box-sizing: border-box; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
+            margin: 0;
+            font-family: Inter, Segoe UI, Roboto, sans-serif;
+            background: radial-gradient(circle at top right, #171717 0%, #050505 48%);
+            color: var(--text);
         }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        .header {
-            text-align: center;
-            color: white;
-            margin-bottom: 30px;
-        }
-
-        .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-        }
-
-        .header p {
-            opacity: 0.9;
-            font-size: 1.1em;
-        }
-
-        .card {
-            background: white;
-            border-radius: 12px;
-            padding: 30px;
-            margin-bottom: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        }
-
-        .upload-area {
-            border: 3px dashed #667eea;
-            border-radius: 8px;
-            padding: 40px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            background: #f8f9ff;
-        }
-
-        .upload-area:hover {
-            border-color: #764ba2;
-            background: #f0f2ff;
-        }
-
-        .upload-area.dragover {
-            border-color: #764ba2;
-            background: #e8ebff;
-        }
-
-        #fileInput, #directoryInput {
-            display: none;
-        }
-
-        .btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 12px 30px;
-            border-radius: 6px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: transform 0.2s;
-            margin: 10px 5px;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-        }
-
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .btn-secondary {
-            background: #6c757d;
-        }
-
-        .btn-success {
-            background: #28a745;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
-        }
-
-        .stat-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px;
-            border-radius: 8px;
-            text-align: center;
-        }
-
-        .stat-card h3 {
-            font-size: 0.9em;
-            opacity: 0.9;
-            margin-bottom: 10px;
-        }
-
-        .stat-card .value {
-            font-size: 2em;
-            font-weight: bold;
-        }
-
-        .chart-container {
-            position: relative;
-            height: 400px;
-            margin-top: 20px;
-        }
-
-        .result {
-            margin-top: 20px;
-            padding: 20px;
-            border-radius: 8px;
-            display: none;
-        }
-
-        .result.success {
-            background: #d4edda;
-            border: 1px solid #c3e6cb;
-            color: #155724;
-        }
-
-        .result.error {
-            background: #f8d7da;
-            border: 1px solid #f5c6cb;
-            color: #721c24;
-        }
-
-        .progress {
-            width: 100%;
-            height: 30px;
-            background: #e9ecef;
-            border-radius: 15px;
-            overflow: hidden;
-            margin: 20px 0;
-            display: none;
-        }
-
-        .progress-bar {
-            height: 100%;
-            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-            width: 0%;
-            transition: width 0.3s;
+        .wrap { max-width: 1360px; margin: 24px auto; padding: 0 16px; }
+        .top {
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
+            gap: 16px;
+            margin-bottom: 16px;
         }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
+        .title { font-size: 28px; letter-spacing: 1px; }
+        .sub { color: var(--muted); font-size: 13px; }
+        .chip {
+            border: 1px solid var(--line);
+            background: #0b0b0b;
+            border-radius: 999px;
+            padding: 8px 12px;
+            font-size: 12px;
+            color: var(--muted);
         }
-
-        th, td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #dee2e6;
+        .tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+        .tab {
+            border: 1px solid var(--line);
+            background: #0b0b0b;
+            color: var(--muted);
+            border-radius: 8px;
+            padding: 10px 14px;
+            cursor: pointer;
         }
-
-        th {
-            background: #f8f9fa;
-            font-weight: 600;
+        .tab.active { color: var(--text); border-color: #ffffff66; background: #161616; }
+        .grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 16px; }
+        .panel {
+            background: linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 16px;
         }
-
-        tr:hover {
-            background: #f8f9fa;
-        }
-
-        .tabs {
+        .single-col { display: grid; grid-template-columns: 1fr; gap: 16px; }
+        .hidden { display: none; }
+        .row {
             display: flex;
             gap: 10px;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #dee2e6;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-top: 10px;
         }
-
-        .tab {
-            padding: 12px 24px;
-            cursor: pointer;
+        .btn {
+            background: #f5f5f5;
+            color: #080808;
             border: none;
-            background: none;
-            font-size: 16px;
-            color: #666;
-            border-bottom: 3px solid transparent;
-            transition: all 0.3s;
-        }
-
-        .tab.active {
-            color: #667eea;
-            border-bottom-color: #667eea;
+            border-radius: 8px;
+            padding: 10px 14px;
             font-weight: 600;
+            cursor: pointer;
         }
-
-        .tab-content {
-            display: none;
+        .btn.secondary {
+            background: #222;
+            color: #eee;
+            border: 1px solid #333;
         }
-
-        .tab-content.active {
-            display: block;
+        .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+        .drop {
+            border: 1px dashed #444;
+            border-radius: 10px;
+            padding: 22px;
+            background: #0a0a0a;
+            text-align: center;
+            color: var(--muted);
+            margin-top: 8px;
+            user-select: none;
         }
-
-        .directory-info {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 6px;
-            margin: 15px 0;
+        .drop.drag { border-color: #fff; color: #fff; }
+        input[type="file"] { display: none; }
+        .progress {
+            height: 10px;
+            border-radius: 999px;
+            background: #202020;
+            margin-top: 10px;
+            overflow: hidden;
         }
-
-        .file-list {
-            max-height: 300px;
-            overflow-y: auto;
-            margin: 15px 0;
+        .bar {
+            height: 100%;
+            width: 0;
+            background: linear-gradient(90deg, #5f5f5f, #fff);
+            transition: width .25s ease;
+        }
+        .stat-grid {
+            margin-top: 12px;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(120px, 1fr));
+            gap: 10px;
+        }
+        .stat {
+            border: 1px solid #2a2a2a;
+            border-radius: 8px;
             padding: 10px;
-            background: #f8f9fa;
-            border-radius: 6px;
+            background: #0d0d0d;
+            animation: pulse .8s ease;
         }
-
-        .file-item {
-            padding: 8px;
-            border-bottom: 1px solid #dee2e6;
+        .stat .k { font-size: 12px; color: var(--muted); }
+        .stat .v { font-size: 20px; margin-top: 3px; }
+        @keyframes pulse {
+            from { transform: scale(.98); opacity: .6; }
+            to { transform: scale(1); opacity: 1; }
         }
-
-        .file-item:last-child {
-            border-bottom: none;
+        .small { color: var(--muted); font-size: 12px; }
+        .result {
+            margin-top: 12px;
+            border: 1px solid #2f2f2f;
+            border-radius: 8px;
+            padding: 10px;
+            background: #0b0b0b;
+        }
+        .table-wrap {
+            max-height: 260px;
+            overflow: auto;
+            margin-top: 12px;
+            border: 1px solid #2a2a2a;
+            border-radius: 8px;
+        }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th, td {
+            border-bottom: 1px solid #252525;
+            padding: 8px 10px;
+            text-align: left;
+            vertical-align: top;
+        }
+        th {
+            color: #d0d0d0;
+            position: sticky;
+            top: 0;
+            background: #111;
+        }
+        .ok { color: #d0ffd0; }
+        .err { color: #ffd0d0; }
+        @media (max-width: 980px) {
+            .grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🚀 CrossV9 Compression System</h1>
-            <p>Semantic Deduplication & Compression - MVP Testing Interface</p>
+<div class="wrap">
+    <div class="top">
+        <div>
+            <div class="title">CrossV9 Compression Interface</div>
+            <div class="sub">Cluster-safe browser upload flow. No server-local file path required.</div>
         </div>
+        <div class="chip" id="modeChip">Mode: Browser Upload</div>
+    </div>
 
-        <div class="card">
-            <div class="tabs">
-                <button class="tab active" onclick="switchTab('single')">Single File</button>
-                <button class="tab" onclick="switchTab('directory')">Directory</button>
-                <button class="tab" onclick="switchTab('logs')">📋 Logs</button>
+    <div class="tabs">
+        <button class="tab active" data-tab="single">Single File</button>
+        <button class="tab" data-tab="batch">Folder / Batch</button>
+        <button class="tab" data-tab="stats">Statistics</button>
+    </div>
+
+    <div id="single" class="tab-pane">
+        <div class="grid">
+            <div class="panel">
+                <h3>Compress Local File</h3>
+                <div class="drop" id="singleDrop">Drop file here, or click to select</div>
+                <input id="singleInput" type="file">
+                <div class="row">
+                    <button class="btn" id="compressSingleBtn" disabled>Compress and Download</button>
+                    <button class="btn secondary" id="refreshBtn">Refresh Stats</button>
+                </div>
+                <div class="progress"><div class="bar" id="singleBar"></div></div>
+                <div class="small" id="singleStatus">Idle</div>
+                <div class="result hidden" id="singleResult"></div>
             </div>
 
-            <!-- Single File Tab -->
-            <div id="single-tab" class="tab-content active">
-                <h2>Upload File for Compression</h2>
-                <div class="upload-area" id="uploadArea">
-                    <p style="font-size: 1.2em; margin-bottom: 10px;">📁 Drop file here or click to browse</p>
-                    <p style="color: #666;">Supports files up to 1GB</p>
-                    <input type="file" id="fileInput">
+            <div class="panel">
+                <h3>Live Stats</h3>
+                <div class="stat-grid">
+                    <div class="stat"><div class="k">Original</div><div class="v" id="sOriginal">0 B</div></div>
+                    <div class="stat"><div class="k">Compressed</div><div class="v" id="sCompressed">0 B</div></div>
+                    <div class="stat"><div class="k">Savings</div><div class="v" id="sSavings">0 B</div></div>
+                    <div class="stat"><div class="k">References</div><div class="v" id="sRefs">0</div></div>
                 </div>
-                <div style="text-align: center; margin-top: 20px;">
-                    <button class="btn" id="compressBtn" disabled>Compress</button>
-                    <button class="btn btn-secondary" id="refreshStatsBtn">Refresh Statistics</button>
-                </div>
-                <div class="progress" id="progress">
-                    <div class="progress-bar" id="progressBar">Processing...</div>
-                </div>
-                <div class="result" id="result"></div>
+                <div style="margin-top:12px;"><canvas id="singleChart" height="160"></canvas></div>
             </div>
-
-            <!-- Directory Tab -->
-            <div id="directory-tab" class="tab-content">
-                <h2>Compress Directory</h2>
-                <p style="margin-bottom: 20px; color: #666;">Enter a directory path on the server. All files will be compressed recursively.</p>
-                <div style="margin-bottom: 20px;">
-                    <label for="inputDirectory" style="display: block; margin-bottom: 8px; font-weight: 600;">Input Directory:</label>
-                    <input type="text" id="inputDirectory" placeholder="/path/to/directory" style="width: 100%; padding: 12px; border: 2px solid #667eea; border-radius: 6px; font-size: 14px;">
-                    <small style="color: #666; display: block; margin-top: 5px;">Absolute path to directory on server (e.g., /home/user/documents)</small>
-                </div>
-                <div style="margin-bottom: 20px;">
-                    <label for="outputDirectory" style="display: block; margin-bottom: 8px; font-weight: 600;">Output Directory:</label>
-                    <input type="text" id="outputDirectory" placeholder="/path/to/output" style="width: 100%; padding: 12px; border: 2px solid #667eea; border-radius: 6px; font-size: 14px;">
-                    <small style="color: #666; display: block; margin-top: 5px;">Absolute path where compressed files will be written</small>
-                </div>
-                <div class="directory-info" id="directoryInfo" style="display: none;">
-                    <div id="directoryStats" style="margin: 15px 0; padding: 15px; background: #f8f9fa; border-radius: 6px;">
-                        <strong>Processing:</strong> <span id="currentFile">-</span><br>
-                        <strong>Progress:</strong> <span id="processedFiles">0</span> / <span id="totalFiles">0</span> files<br>
-                        <strong>Successful:</strong> <span id="successCount">0</span> | <strong>Failed:</strong> <span id="failCount">0</span><br>
-                        <strong>Total Size:</strong> <span id="totalSize">0 Bytes</span> → <span id="compressedSize">0 Bytes</span><br>
-                        <strong>(A) Actual Storage:</strong> <span id="actualStorageSize">0 Bytes</span><br>
-                        <strong>Elapsed Time:</strong> <span id="elapsedTime">0ms</span>
-                    </div>
-                    <div style="margin-top: 15px;">
-                        <h3 style="margin: 0 0 10px 0;">References Found Per File</h3>
-                        <div class="chart-container" style="height: 220px;">
-                            <canvas id="referencesChart"></canvas>
-                        </div>
-                    </div>
-                    <div style="margin-top: 15px;">
-                        <h3 style="margin: 0 0 10px 0;">File Sizes / Savings Per File</h3>
-                        <div class="chart-container" style="height: 220px;">
-                            <canvas id="fileProgressChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-                <div style="text-align: center; margin-top: 20px;">
-                    <button class="btn btn-success" id="compressDirectoryBtn">Compress Directory</button>
-                </div>
-                <div class="progress" id="directoryProgress" style="display: none;">
-                    <div class="progress-bar" id="directoryProgressBar" style="width: 0%;">0%</div>
-                </div>
-                <div class="result" id="directoryResult"></div>
-            </div>
-
-            <!-- Logs Tab -->
-            <div id="logs-tab" class="tab-content">
-                <h2>📋 Service Logs</h2>
-                <div style="margin-bottom: 20px;">
-                    <label for="logService" style="display: block; margin-bottom: 8px; font-weight: 600;">Service:</label>
-                    <select id="logService" style="width: 200px; padding: 8px; border: 2px solid #667eea; border-radius: 6px; font-size: 14px; margin-right: 10px;">
-                        <option value="agent-1">Agent 1</option>
-                        <option value="agent-2">Agent 2</option>
-                        <option value="agent-3">Agent 3</option>
-                        <option value="gateway">Gateway</option>
-                        <option value="cross">Cross</option>
-                    </select>
-                    <label for="logLines" style="display: inline-block; margin-left: 20px; margin-right: 8px;">Lines:</label>
-                    <input type="number" id="logLines" value="100" min="10" max="1000" style="width: 100px; padding: 8px; border: 2px solid #667eea; border-radius: 6px; font-size: 14px;">
-                    <button class="btn" onclick="loadLogs()" style="margin-left: 10px;">Refresh Logs</button>
-                    <button class="btn btn-secondary" onclick="autoRefreshLogs = !autoRefreshLogs; this.textContent = autoRefreshLogs ? 'Stop Auto-Refresh' : 'Start Auto-Refresh'; if (autoRefreshLogs && !logRefreshInterval) { logRefreshInterval = setInterval(loadLogs, 2000); } else if (!autoRefreshLogs && logRefreshInterval) { clearInterval(logRefreshInterval); logRefreshInterval = null; }">Start Auto-Refresh</button>
-                </div>
-                <div id="logsContainer" style="background: #1e1e1e; color: #d4d4d4; padding: 20px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 12px; max-height: 600px; overflow-y: auto; white-space: pre-wrap; word-wrap: break-word;">
-                    <em>Click "Refresh Logs" to load logs...</em>
-                </div>
-            </div>
-        </div>
-
-        <div class="card">
-            <h2>📊 Summary Statistics</h2>
-            <div class="stats-grid" id="summaryStats">
-                <div class="stat-card">
-                    <h3>Total Compressions</h3>
-                    <div class="value" id="totalCompressions">-</div>
-                </div>
-                <div class="stat-card">
-                    <h3>Avg Compression Ratio</h3>
-                    <div class="value" id="avgRatio">-</div>
-                </div>
-                <div class="stat-card">
-                    <h3>Total Savings</h3>
-                    <div class="value" id="totalSavings">-</div>
-                </div>
-                <div class="stat-card">
-                    <h3>Avg Duration</h3>
-                    <div class="value" id="avgDuration">-</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="card">
-            <h2>📈 Storage Comparison</h2>
-            <p style="margin-bottom: 15px; color: #666; font-size: 14px;">
-                <strong>(A) Actual Storage:</strong> Total size of chunks actually stored (with deduplication)<br>
-                <strong>(B) Original Size:</strong> Total size without compression algorithm
-            </p>
-            <div class="chart-container">
-                <canvas id="storageChart"></canvas>
-            </div>
-        </div>
-
-        <div class="card">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h2 style="margin: 0;">📋 Recent Compressions</h2>
-                <div style="display: flex; gap: 10px;">
-                    <button class="btn" id="clearStatsBtn" style="background: #ff9800; color: white; padding: 8px 16px; font-size: 14px;">📊 Clear Statistics</button>
-                    <button class="btn" id="clearDbBtn" style="background: #dc3545; color: white; padding: 8px 16px; font-size: 14px;">🗑️ Clear Database</button>
-                </div>
-            </div>
-            <table id="statsTable">
-                <thead>
-                    <tr>
-                        <th>Filename</th>
-                        <th>Original Size</th>
-                        <th>Compressed Size</th>
-                        <th>Ratio</th>
-                        <th>Savings %</th>
-                        <th>Duration</th>
-                        <th>Time</th>
-                    </tr>
-                </thead>
-                <tbody id="statsBody">
-                    <tr>
-                        <td colspan="7" style="text-align: center; padding: 40px;">No compressions yet</td>
-                    </tr>
-                </tbody>
-            </table>
         </div>
     </div>
 
-    <script>
-        const fileInput = document.getElementById('fileInput');
-        const directoryInput = document.getElementById('directoryInput');
-        const uploadArea = document.getElementById('uploadArea');
-        const directoryArea = document.getElementById('directoryArea');
-        const compressBtn = document.getElementById('compressBtn');
-        const compressDirectoryBtn = document.getElementById('compressDirectoryBtn');
-        const refreshStatsBtn = document.getElementById('refreshStatsBtn');
-        const clearStatsBtn = document.getElementById('clearStatsBtn');
-        const clearDbBtn = document.getElementById('clearDbBtn');
-        const progress = document.getElementById('progress');
-        const progressBar = document.getElementById('progressBar');
-        const directoryProgress = document.getElementById('directoryProgress');
-        const directoryProgressBar = document.getElementById('directoryProgressBar');
-        const result = document.getElementById('result');
-        const directoryResult = document.getElementById('directoryResult');
-        const directoryInfo = document.getElementById('directoryInfo');
-        const fileList = document.getElementById('fileList');
-        const fileCount = document.getElementById('fileCount');
-        // Directory compression inputs (explicit bindings; don't rely on window.<id> globals)
-        const inputDirectory = document.getElementById('inputDirectory');
-        const outputDirectory = document.getElementById('outputDirectory');
+    <div id="batch" class="tab-pane hidden">
+        <div class="single-col">
+            <div class="panel">
+                <h3>Compress Folder from Browser</h3>
+                <div class="small">Select a local folder. Files are uploaded as bytes and compressed server-side. This works on remote clusters.</div>
+                <div class="row">
+                    <button class="btn secondary" id="pickFolderBtn">Pick Folder</button>
+                    <input id="folderInput" type="file" webkitdirectory directory multiple>
+                    <button class="btn" id="startBatchBtn" disabled>Start Batch</button>
+                </div>
+                <div class="small" id="folderSummary">No files selected</div>
+                <div class="progress"><div class="bar" id="batchBar"></div></div>
+                <div class="small" id="batchStatus">Idle</div>
+            </div>
+            <div class="grid">
+                <div class="panel">
+                    <h3>References Per File</h3>
+                    <canvas id="refsChart" height="170"></canvas>
+                </div>
+                <div class="panel">
+                    <h3>Compression Ratio Per File</h3>
+                    <canvas id="ratioChart" height="170"></canvas>
+                </div>
+            </div>
+            <div class="panel">
+                <h3>Batch Results</h3>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                        <tr><th>#</th><th>File</th><th>Original</th><th>Compressed</th><th>Refs</th><th>Status</th></tr>
+                        </thead>
+                        <tbody id="batchTable"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
 
-        let selectedFile = null;
-        let storageChart = null;
-        let fileProgressChart = null;
-        let fileProgressData = []; // Array of {index, originalSize, savings}
-        let referencesChart = null;
-        let lastCompressedUrl = null;
-        let lastCompressedName = null;
+    <div id="stats" class="tab-pane hidden">
+        <div class="panel">
+            <h3>Service Statistics</h3>
+            <div class="row"><button class="btn" id="loadStatsBtn">Load</button></div>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>File</th><th>Original</th><th>Compressed</th><th>Ratio</th><th>Refs</th><th>Time</th></tr></thead>
+                    <tbody id="statsTable"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
 
-        // Initialize chart
-        function initChart() {
-            const ctx = document.getElementById('storageChart').getContext('2d');
-            storageChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: ['Original Storage', 'Compressed Storage (GCS Chunks)'],
-                    datasets: [{
-                        label: 'Bytes',
-                        data: [0, 0],
-                        backgroundColor: ['rgba(102, 126, 234, 0.8)', 'rgba(118, 75, 162, 0.8)'],
-                        borderColor: ['rgba(102, 126, 234, 1)', 'rgba(118, 75, 162, 1)'],
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: false
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return formatBytes(context.parsed.y);
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: function(value) {
-                                    return formatBytes(value);
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-        }
+<script>
+(() => {
+    const tabs = document.querySelectorAll(".tab");
+    tabs.forEach(btn => btn.addEventListener("click", () => {
+        tabs.forEach(t => t.classList.remove("active"));
+        btn.classList.add("active");
+        document.querySelectorAll(".tab-pane").forEach(p => p.classList.add("hidden"));
+        document.getElementById(btn.dataset.tab).classList.remove("hidden");
+    }));
 
-        function updateChart(originalBytes, chunkBytes) {
-            if (storageChart) {
-                storageChart.data.datasets[0].data = [originalBytes, chunkBytes];
-                storageChart.update();
-            }
-        }
+    const fmtBytes = n => {
+        if (!n || n <= 0) return "0 B";
+        const u = ["B", "KB", "MB", "GB", "TB"];
+        const i = Math.min(Math.floor(Math.log(n) / Math.log(1024)), u.length - 1);
+        return `${(n / Math.pow(1024, i)).toFixed(i === 0 ? 0 : 2)} ${u[i]}`;
+    };
 
-        // Initialize file progress chart
-        function initFileProgressChart() {
-            const canvas = document.getElementById('fileProgressChart');
-            if (!canvas) return;
-            const ctx = canvas.getContext('2d');
-            if (fileProgressChart) fileProgressChart.destroy();
-            fileProgressChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: [],
-                    datasets: [
-                        {
-                            label: 'Original Size',
-                            data: [],
-                            borderColor: 'rgba(102, 126, 234, 1)',
-                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                            borderWidth: 2,
-                            fill: false
-                        },
-                        {
-                            label: 'Savings (Original - Compressed)',
-                            data: [],
-                            borderColor: 'rgba(40, 167, 69, 1)',
-                            backgroundColor: 'rgba(40, 167, 69, 0.1)',
-                            borderWidth: 2,
-                            fill: false
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'top'
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return context.dataset.label + ': ' + formatBytes(context.parsed.y);
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'File Index'
-                            },
-                            beginAtZero: true
-                        },
-                        y: {
-                            title: {
-                                display: true,
-                                text: 'Size (Bytes)'
-                            },
-                            beginAtZero: true,
-                            ticks: {
-                                callback: function(value) {
-                                    return formatBytes(value);
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-        }
+    function setBar(el, pct) {
+        el.style.width = `${Math.max(0, Math.min(100, pct))}%`;
+    }
 
-        function updateFileProgressChart(index, originalSize, compressedSize) {
-            if (!fileProgressChart) return;
-            
-            const savings = originalSize - compressedSize;
-            const label = index.toString();
-            
-            // Check if this index already exists (update) or add new
-            const existingIndex = fileProgressChart.data.labels.indexOf(label);
-            if (existingIndex !== -1) {
-                // Update existing
-                fileProgressChart.data.datasets[0].data[existingIndex] = originalSize;
-                fileProgressChart.data.datasets[1].data[existingIndex] = savings;
-            } else {
-                // Add new
-                fileProgressChart.data.labels.push(label);
-                fileProgressChart.data.datasets[0].data.push(originalSize);
-                fileProgressChart.data.datasets[1].data.push(savings);
-            }
-            
-            fileProgressChart.update();
-        }
+    const singleDrop = document.getElementById("singleDrop");
+    const singleInput = document.getElementById("singleInput");
+    const compressSingleBtn = document.getElementById("compressSingleBtn");
+    const singleBar = document.getElementById("singleBar");
+    const singleStatus = document.getElementById("singleStatus");
+    const singleResult = document.getElementById("singleResult");
+    let selectedSingle = null;
 
-        // References chart: Y = references found, X = file index in directory compression
-        function initReferencesChart() {
-            const canvas = document.getElementById('referencesChart');
-            if (!canvas) return;
-            const ctx = canvas.getContext('2d');
-            if (referencesChart) referencesChart.destroy();
-            referencesChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: [],
-                    datasets: [
-                        {
-                            label: 'References Found',
-                            data: [],
-                            borderColor: 'rgba(118, 75, 162, 1)',
-                            backgroundColor: 'rgba(118, 75, 162, 0.1)',
-                            borderWidth: 2,
-                            fill: true,
-                            tension: 0.15,
-                            pointRadius: 2
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    animation: false,
-                    plugins: {
-                        legend: { display: true, position: 'top' }
-                    },
-                    scales: {
-                        x: { title: { display: true, text: 'File Index' } },
-                        y: { title: { display: true, text: 'References Found' }, beginAtZero: true }
-                    }
-                }
-            });
-        }
+    singleDrop.addEventListener("click", () => singleInput.click());
+    singleInput.addEventListener("change", () => {
+        selectedSingle = singleInput.files[0] || null;
+        singleDrop.textContent = selectedSingle ? `${selectedSingle.name} (${fmtBytes(selectedSingle.size)})` : "Drop file here, or click to select";
+        compressSingleBtn.disabled = !selectedSingle;
+    });
 
-        function updateReferencesChart(fileIndex, referencesFound) {
-            if (!referencesChart) return;
-            referencesChart.data.labels.push(fileIndex.toString());
-            referencesChart.data.datasets[0].data.push(referencesFound);
-            referencesChart.update();
-        }
-
-
-        // Single file upload
-        uploadArea.addEventListener('click', () => fileInput.click());
-        fileInput.addEventListener('change', (e) => {
-            selectedFile = e.target.files[0];
-            compressBtn.disabled = !selectedFile;
-            if (selectedFile) {
-                uploadArea.innerHTML = `
-                    <p style="font-size: 1.2em; margin-bottom: 10px;">📄 ${selectedFile.name}</p>
-                    <p style="color: #666;">${formatBytes(selectedFile.size)}</p>
-                `;
-            }
-        });
-
-        uploadArea.addEventListener('dragover', (e) => {
+    ["dragenter", "dragover"].forEach(evt => {
+        singleDrop.addEventListener(evt, e => {
             e.preventDefault();
-            uploadArea.classList.add('dragover');
+            singleDrop.classList.add("drag");
         });
-
-        uploadArea.addEventListener('dragleave', () => {
-            uploadArea.classList.remove('dragover');
-        });
-
-        uploadArea.addEventListener('drop', (e) => {
+    });
+    ["dragleave", "drop"].forEach(evt => {
+        singleDrop.addEventListener(evt, e => {
             e.preventDefault();
-            uploadArea.classList.remove('dragover');
-            const file = e.dataTransfer.files[0];
-            if (file) {
-                selectedFile = file;
-                fileInput.files = e.dataTransfer.files;
-                compressBtn.disabled = false;
-                uploadArea.innerHTML = `
-                    <p style="font-size: 1.2em; margin-bottom: 10px;">📄 ${file.name}</p>
-                    <p style="color: #666;">${formatBytes(file.size)}</p>
-                `;
-            }
+            singleDrop.classList.remove("drag");
         });
+    });
+    singleDrop.addEventListener("drop", e => {
+        const f = e.dataTransfer.files[0];
+        if (!f) return;
+        selectedSingle = f;
+        singleDrop.textContent = `${f.name} (${fmtBytes(f.size)})`;
+        compressSingleBtn.disabled = false;
+    });
 
-
-        // Compress single file
-        compressBtn.addEventListener('click', async () => {
-            if (!selectedFile) return;
-
-            compressBtn.disabled = true;
-            progress.style.display = 'block';
-            progressBar.style.width = '30%';
-            result.style.display = 'none';
-
-            const formData = new FormData();
-            formData.append('file', selectedFile);
-
-            try {
-                const response = await fetch('/api/compression/compress-binary', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                progressBar.style.width = '80%';
-                if (!response.ok) {
-                    const errText = await response.text();
-                    throw new Error(errText || 'Compression failed');
-                }
-
-                const blob = await response.blob();
-                const originalSize = Number(response.headers.get('X-Cross-Original-Size') || selectedFile.size || 0);
-                const compressedSize = Number(response.headers.get('X-Cross-Compressed-Size') || blob.size || 0);
-                const referencesFound = Number(response.headers.get('X-Cross-References-Found') || 0);
-                const totalChunks = Number(response.headers.get('X-Cross-Total-Chunks') || 0);
-
-                const ratio = originalSize > 0 ? (compressedSize / originalSize) : 0;
-                const savingsBytes = originalSize - compressedSize;
-                const savingsPercent = originalSize > 0 ? (savingsBytes / originalSize * 100) : 0;
-
-                if (lastCompressedUrl) URL.revokeObjectURL(lastCompressedUrl);
-                lastCompressedUrl = URL.createObjectURL(blob);
-                lastCompressedName =
-                    getDownloadNameFromContentDisposition(response.headers.get('content-disposition'))
-                    || (selectedFile.name + '.ccf');
-
-                progressBar.style.width = '100%';
-                setTimeout(() => {
-                    progress.style.display = 'none';
-                    showResult('success', `
-                        <h3>✅ Compression Successful!</h3>
-                        <p><strong>Original Size:</strong> ${formatBytes(originalSize)}</p>
-                        <p><strong>Compressed Size:</strong> ${formatBytes(compressedSize)}</p>
-                        <p><strong>Compression Ratio:</strong> ${(ratio * 100).toFixed(2)}%</p>
-                        <p><strong>Space Saved:</strong> ${formatBytes(savingsBytes)} (${savingsPercent.toFixed(2)}%)</p>
-                        <p><strong>References Found:</strong> ${referencesFound} / ${totalChunks}</p>
-                        <button class="btn" onclick="downloadLastCompressed()">Download Compressed</button>
-                    `);
-                    loadStatistics();
-                    compressBtn.disabled = false;
-                }, 250);
-            } catch (error) {
-                progress.style.display = 'none';
-                showResult('error', `<h3>❌ Error</h3><p>${error.message}</p>`);
-                compressBtn.disabled = false;
-            }
-        });
-
-        // Compress directory
-        compressDirectoryBtn.addEventListener('click', async () => {
-            const inputDir = inputDirectory.value.trim();
-            if (!inputDir) {
-                showDirectoryResult('error', '<h3>❌ Error</h3><p>Please enter an input directory path</p>');
-                return;
-            }
-            const outDir = outputDirectory.value.trim();
-            if (!outDir) {
-                showDirectoryResult('error', '<h3>❌ Error</h3><p>Please enter an output directory path</p>');
-                return;
-            }
-
-            compressDirectoryBtn.disabled = true;
-            directoryProgress.style.display = 'block';
-            directoryProgressBar.style.width = '0%';
-            directoryInfo.style.display = 'block';
-            directoryResult.style.display = 'none';
-
-            // Initialize charts for this run
-            initFileProgressChart();
-            initReferencesChart();
-
-            const formData = new FormData();
-            formData.append('inputDirectory', inputDir);
-            formData.append('outputDirectory', outDir);
-
-            try {
-                console.log('Starting compression request...');
-                const response = await fetch('/api/directory/compress-directory', {
-                    method: 'POST',
-                    body: formData,
-                    // Don't wait for full response - start reading immediately
-                    cache: 'no-cache'
-                });
-
-                console.log('Response received, status:', response.status, 'content-type:', response.headers.get('content-type'));
-
-                if (!response.ok && response.status !== 200) {
-                    const errorText = await response.text();
-                    throw new Error(`Failed to start compression: ${errorText}`);
-                }
-
-                if (!response.body) {
-                    throw new Error('Response body is null - streaming not supported');
-                }
-
-                console.log('Starting to read SSE stream...');
-                const reader = response.body.getReader();
-                const decoder = new TextDecoder();
-                let buffer = '';
-                let eventCount = 0;
-                let inProgressJson = ''; // Track incomplete JSON across chunks
-
-                while (true) {
-                    const { done, value } = await reader.read();
-                    if (done) {
-                        console.log('SSE stream ended (done=true)');
-                        break;
-                    }
-
-                    if (value) {
-                        buffer += decoder.decode(value, { stream: true });
-                        
-                        // Process complete SSE events (ending with \n\n)
-                        let eventEnd = buffer.indexOf('\n\n');
-                        while (eventEnd !== -1) {
-                            const event = buffer.substring(0, eventEnd);
-                            buffer = buffer.substring(eventEnd + 2);
-                            
-                            // Extract data line from SSE event
-                            const dataLine = event.split('\n').find(line => line.startsWith('data: '));
-                            if (dataLine) {
-                                try {
-                                    const jsonStr = dataLine.slice(6).trim();
-                                    if (jsonStr) {
-                                        // Combine with any in-progress JSON from previous chunks
-                                        const fullJson = inProgressJson + jsonStr;
-                                        inProgressJson = ''; // Reset
-                                        
-                                        // Try to parse - if it fails, it might be incomplete
-                                        try {
-                                            const data = JSON.parse(fullJson);
-                                            eventCount++;
-                                            
-                                            // Debug: Log occasionally (less frequent for large file counts)
-                                            if (eventCount <= 5 || eventCount % 100 === 0) {
-                                                console.log(`[SSE Event #${eventCount}] Type: ${data.type}, ProcessedFiles: ${data.progress?.processedFiles || 0}, Percent: ${(data.progress?.progressPercent || 0).toFixed(1)}%`);
-                                            }
-
-                                            if (data.type === 'progress') {
-                                    const prog = data.progress;
-                                    if (!prog) {
-                                        console.error('Progress object is null!', data);
-                                        continue;
-                                    }
-                                    
-                                                // Use the actual property names from the JSON (camelCase from C#)
-                                                const processed = prog.processedFiles || prog.ProcessedFiles || 0;
-                                                const total = prog.totalFiles || prog.TotalFiles || 0;
-                                                const percent = prog.progressPercent || prog.ProgressPercent || 0;
-                                                
-                                                // Always update UI - don't skip updates
-                                                directoryProgressBar.style.width = percent + '%';
-                                                directoryProgressBar.textContent = Math.round(percent) + '%';
-                                                
-                                                currentFile.textContent = (prog.currentFileName || prog.CurrentFileName || '-');
-                                                processedFiles.textContent = processed;
-                                                totalFiles.textContent = total;
-                                                successCount.textContent = (prog.successfulFiles || prog.SuccessfulFiles || 0);
-                                                failCount.textContent = (prog.failedFiles || prog.FailedFiles || 0);
-                                                totalSize.textContent = formatBytes(prog.totalOriginalSize || prog.TotalOriginalSize || 0);
-                                                compressedSize.textContent = formatBytes(prog.totalCompressedSize || prog.TotalCompressedSize || 0);
-                                                document.getElementById('actualStorageSize').textContent = formatBytes(prog.totalChunkBytes || prog.TotalChunkBytes || 0);
-                                                elapsedTime.textContent = Math.round(prog.elapsedMs || prog.ElapsedMs || 0) + 'ms';
-                                                
-                                                // Log occasionally for debugging
-                                                if (eventCount <= 5 || eventCount % 100 === 0) {
-                                                    console.log(`[SSE Event #${eventCount}] UI Updated - ProcessedFiles: ${processed}, Percent: ${percent.toFixed(1)}%`);
-                                                }
-
-                                                // Update summary statistics live
-                                                if (processed > 0) {
-                                                    document.getElementById('totalCompressions').textContent = processed;
-                                                    const totalOrig = prog.totalOriginalSize || prog.TotalOriginalSize || 0;
-                                                    const totalComp = prog.totalCompressedSize || prog.TotalCompressedSize || 0;
-                                                    if (totalOrig > 0) {
-                                                        const avgRatio = totalComp / totalOrig;
-                                                        document.getElementById('avgRatio').textContent = (avgRatio * 100).toFixed(1) + '%';
-                                                        document.getElementById('totalSavings').textContent = formatBytes(totalOrig - totalComp);
-                                                        document.getElementById('avgDuration').textContent = Math.round((prog.elapsedMs || prog.ElapsedMs || 0) / processed) + 'ms';
-                                                    }
-                                                }
-
-                                                // Update chart in real-time with (B) Original Size and (A) Actual Storage
-                                                const totalOrig = prog.totalOriginalSize || prog.TotalOriginalSize || 0;
-                                                const totalChunks = prog.totalChunkBytes || prog.TotalChunkBytes || 0;
-                                                if (totalOrig > 0) {
-                                                    updateChart(totalOrig, totalChunks);
-                                                }
-
-                                                // Update file progress chart if we have current file info
-                                                const currFileOrig = prog.currentFileOriginalSize || prog.CurrentFileOriginalSize || 0;
-                                                const currFileComp = prog.currentFileCompressedSize || prog.CurrentFileCompressedSize || 0;
-                                                if (currFileOrig > 0 && currFileComp > 0) {
-                                                    updateFileProgressChart(
-                                                        processed - 1, // Use processedFiles - 1 as index (0-based)
-                                                        currFileOrig,
-                                                        currFileComp
-                                                    );
-                                                }
-                                            } else if (data.type === 'file') {
-                                                const f = data.file || {};
-                                                if (typeof f.index === 'number' && typeof f.referencesFound === 'number') {
-                                                    updateReferencesChart(f.index, f.referencesFound);
-                                                }
-                                            } else if (data.type === 'complete') {
-                                                const result = data.result;
-                                                directoryProgressBar.style.width = '100%';
-                                                directoryProgressBar.textContent = '100%';
-                                                
-                                                setTimeout(() => {
-                                                    directoryProgress.style.display = 'none';
-                                                    showDirectoryResult('success', `
-                                                        <h3>✅ Directory Compression Complete!</h3>
-                                                        <p><strong>Total Files:</strong> ${result.totalFiles}</p>
-                                                        <p><strong>Successful:</strong> ${result.successfulFiles}</p>
-                                                        <p><strong>Failed:</strong> ${result.failedFiles}</p>
-                                                        <p><strong>Total Original Size:</strong> ${formatBytes(result.totalOriginalSize)}</p>
-                                                        <p><strong>Total Compressed Size:</strong> ${formatBytes(result.totalCompressedSize)}</p>
-                                                        <p><strong>Total Savings:</strong> ${formatBytes(result.totalSavings)} (${(result.compressionRatio * 100).toFixed(2)}% ratio)</p>
-                                                        <p><strong>Total Duration:</strong> ${result.totalDurationMs.toFixed(0)}ms (${(result.totalDurationMs / 1000).toFixed(2)}s)</p>
-                                                        <p><strong>Output Directory:</strong> ${result.outputDirectory}</p>
-                                                    `);
-                                                    loadStatistics();
-                                                    compressDirectoryBtn.disabled = false;
-                                                }, 500);
-                                            } else if (data.type === 'error') {
-                                                throw new Error(data.error || 'Compression failed');
-                                            }
-                                        } catch (parseError) {
-                                            // JSON might be incomplete - save for next chunk
-                                            if (parseError instanceof SyntaxError && fullJson.length > 0) {
-                                                inProgressJson = fullJson; // Save incomplete JSON
-                                                // Don't log every incomplete JSON - only occasionally
-                                                if (eventCount % 1000 === 0) {
-                                                    console.warn(`[SSE] Incomplete JSON detected, buffering... (${fullJson.length} chars)`);
-                                                }
-                                            } else {
-                                                // Only log errors occasionally to avoid console spam
-                                                if (eventCount % 1000 === 0) {
-                                                    console.error('Error parsing SSE JSON:', parseError, 'JSON preview:', fullJson.substring(0, 100));
-                                                }
-                                            }
-                                        }
-                                    }
-                                } catch (e) {
-                                    // Only log errors occasionally
-                                    if (eventCount % 1000 === 0) {
-                                        console.error('Error processing SSE event:', e);
-                                    }
-                                }
-                            }
-                            
-                            // Look for next complete event
-                            eventEnd = buffer.indexOf('\n\n');
-                        }
-                    }
-                }
-                console.log(`SSE stream ended. Total events received: ${eventCount}`);
-            } catch (error) {
-                console.error('Error during compression:', error);
-                directoryProgress.style.display = 'none';
-                showDirectoryResult('error', `<h3>❌ Error</h3><p>${error.message}</p>`);
-                compressDirectoryBtn.disabled = false;
-            }
-        });
-
-        refreshStatsBtn.addEventListener('click', () => {
-            loadStatistics();
-        });
-
-        // Clear statistics
-        clearStatsBtn.addEventListener('click', async () => {
-            if (!confirm('⚠️ WARNING: This will delete ALL compression statistics!\n\nThis will clear:\n- Compression history\n- Statistics summary\n- Recent compressions table\n\nVectors, chunks, and buckets will NOT be affected.\n\nAre you sure you want to continue?')) {
-                return;
-            }
-
-            clearStatsBtn.disabled = true;
-            const originalText = clearStatsBtn.textContent;
-            clearStatsBtn.textContent = 'Clearing...';
-
-            try {
-                const response = await fetch('/api/admin/clear-statistics', {
-                    method: 'POST'
-                });
-
-                const result = await response.json();
-                
-                if (result.success) {
-                    alert('✅ Statistics cleared successfully!\n\nAll compression statistics have been removed.\n\nVectors, chunks, and buckets remain intact.');
-                    // Refresh statistics to show empty state
-                    loadStatistics();
-                } else {
-                    alert('❌ Failed to clear statistics:\n' + result.message);
-                }
-            } catch (error) {
-                alert('❌ Error clearing statistics:\n' + error.message);
-            } finally {
-                clearStatsBtn.disabled = false;
-                clearStatsBtn.textContent = originalText;
-            }
-        });
-
-        // Clear database
-        clearDbBtn.addEventListener('click', async () => {
-            if (!confirm('⚠️ WARNING: This will delete ALL vectors, chunks, and buckets from the database!\n\nThis cannot be undone. Are you sure you want to continue?')) {
-                return;
-            }
-
-            clearDbBtn.disabled = true;
-            const originalText = clearDbBtn.textContent;
-            clearDbBtn.textContent = 'Clearing...';
-
-            try {
-                const response = await fetch('/api/admin/clear-database', {
-                    method: 'POST'
-                });
-
-                const result = await response.json();
-                
-                if (result.success) {
-                    alert('✅ Database cleared successfully!\n\nAll vectors, chunks, and buckets have been removed.');
-                    // Refresh statistics to show empty state
-                    loadStatistics();
-                } else {
-                    alert('❌ Failed to clear database:\n' + result.message);
-                }
-            } catch (error) {
-                alert('❌ Error clearing database:\n' + error.message);
-            } finally {
-                clearDbBtn.disabled = false;
-                clearDbBtn.textContent = originalText;
-            }
-        });
-
-        async function loadStatistics() {
-            try {
-                const [summaryRes, statsRes] = await Promise.all([
-                    fetch('/api/compression/statistics/summary'),
-                    fetch('/api/compression/statistics?limit=50')
-                ]);
-
-                const summary = await summaryRes.json();
-                const stats = await statsRes.json();
-
-                // Update summary
-                document.getElementById('totalCompressions').textContent = summary.totalCompressions || 0;
-                document.getElementById('avgRatio').textContent = summary.averageCompressionRatio 
-                    ? (summary.averageCompressionRatio * 100).toFixed(1) + '%' : '-';
-                document.getElementById('totalSavings').textContent = formatBytes(
-                    (summary.totalOriginalSize || 0) - (summary.totalCompressedSize || 0)
-                );
-                document.getElementById('avgDuration').textContent = summary.averageDurationMs 
-                    ? summary.averageDurationMs.toFixed(0) + 'ms' : '-';
-
-                // Update chart
-                updateChart(summary.totalOriginalSize || 0, summary.totalChunkBytes || 0);
-
-                // Update table
-                const tbody = document.getElementById('statsBody');
-                if (stats.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px;">No compressions yet</td></tr>';
-                } else {
-                    tbody.innerHTML = stats.map(stat => `
-                        <tr>
-                            <td>${stat.fileName}</td>
-                            <td>${formatBytes(stat.originalSize)}</td>
-                            <td>${formatBytes(stat.compressedSize)}</td>
-                            <td>${(stat.compressionRatio * 100).toFixed(2)}%</td>
-                            <td>${stat.savingsPercent.toFixed(2)}%</td>
-                            <td>${stat.durationMs.toFixed(0)}ms</td>
-                            <td>${new Date(stat.timestamp).toLocaleString()}</td>
-                        </tr>
-                    `).join('');
-                }
-            } catch (error) {
-                console.error('Error loading statistics:', error);
+    const singleChart = new Chart(document.getElementById("singleChart"), {
+        type: "bar",
+        data: {
+            labels: ["Original", "Compressed"],
+            datasets: [{ data: [0, 0], backgroundColor: ["#808080", "#ffffff"] }]
+        },
+        options: {
+            responsive: true,
+            animation: { duration: 500 },
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { ticks: { color: "#ccc" } },
+                y: { ticks: { color: "#ccc" } }
             }
         }
+    });
 
-        function showResult(type, message) {
-            result.className = `result ${type}`;
-            result.innerHTML = message;
-            result.style.display = 'block';
-        }
+    function renderSingleStats(original, compressed, refs) {
+        document.getElementById("sOriginal").textContent = fmtBytes(original);
+        document.getElementById("sCompressed").textContent = fmtBytes(compressed);
+        document.getElementById("sSavings").textContent = fmtBytes(Math.max(0, original - compressed));
+        document.getElementById("sRefs").textContent = String(refs || 0);
+        singleChart.data.datasets[0].data = [original, compressed];
+        singleChart.update();
+    }
 
-        function showDirectoryResult(type, message) {
-            directoryResult.className = `result ${type}`;
-            directoryResult.innerHTML = message;
-            directoryResult.style.display = 'block';
-        }
+    async function compressFileBinary(file, statusLabel) {
+        const formData = new FormData();
+        formData.append("file", file);
 
-        function getDownloadNameFromContentDisposition(cd) {
-            if (!cd) return null;
-            // Prefer filename* (RFC 5987) if present
-            const fnStar = cd.match(/filename\*\s*=\s*([^;]+)/i);
-            if (fnStar && fnStar[1]) {
-                const v = fnStar[1].trim();
-                // e.g. UTF-8''file.ccf
-                const parts = v.split("''");
-                if (parts.length === 2) return decodeURIComponent(parts[1].replace(/(^"|"$)/g, ''));
-                return v.replace(/(^"|"$)/g, '');
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 1000 * 60 * 20);
+        try {
+            const res = await fetch("/api/compression/compress-binary", {
+                method: "POST",
+                body: formData,
+                signal: controller.signal
+            });
+            if (!res.ok) {
+                throw new Error(`Compression failed (${res.status})`);
             }
-            const fn = cd.match(/filename\s*=\s*([^;]+)/i);
-            if (fn && fn[1]) return fn[1].trim().replace(/(^"|"$)/g, '');
-            return null;
-        }
 
-        function downloadLastCompressed() {
-            if (!lastCompressedUrl) return;
-            const a = document.createElement('a');
-            a.href = lastCompressedUrl;
-            a.download = lastCompressedName || 'compressed.ccf';
+            const blob = await res.blob();
+            const original = Number(res.headers.get("X-Cross-Original-Size") || file.size || 0);
+            const compressed = Number(res.headers.get("X-Cross-Compressed-Size") || blob.size || 0);
+            const refs = Number(res.headers.get("X-Cross-References-Found") || 0);
+            const chunks = Number(res.headers.get("X-Cross-Total-Chunks") || 0);
+            if (statusLabel) statusLabel.textContent = `Done: ${file.name}`;
+            return { blob, original, compressed, refs, chunks };
+        } finally {
+            clearTimeout(timer);
+        }
+    }
+
+    compressSingleBtn.addEventListener("click", async () => {
+        if (!selectedSingle) return;
+        compressSingleBtn.disabled = true;
+        setBar(singleBar, 10);
+        singleStatus.textContent = "Uploading and compressing...";
+        singleResult.classList.add("hidden");
+
+        try {
+            const out = await compressFileBinary(selectedSingle, singleStatus);
+            setBar(singleBar, 90);
+
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(out.blob);
+            a.download = `${selectedSingle.name}.ccf`;
+            document.body.appendChild(a);
             a.click();
+            a.remove();
+            URL.revokeObjectURL(a.href);
+
+            renderSingleStats(out.original, out.compressed, out.refs);
+            singleResult.innerHTML = `Compression complete.<br>References: ${out.refs} / Chunks: ${out.chunks}`;
+            singleResult.classList.remove("hidden");
+            setBar(singleBar, 100);
+            singleStatus.textContent = "Ready";
+        } catch (err) {
+            singleStatus.textContent = `Error: ${err.message}`;
+        } finally {
+            compressSingleBtn.disabled = false;
         }
+    });
 
-        function formatBytes(bytes) {
-            if (bytes === 0) return '0 Bytes';
-            const k = 1024;
-            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+    document.getElementById("refreshBtn").addEventListener("click", async () => {
+        const res = await fetch("/api/compression/statistics/summary");
+        if (!res.ok) return;
+        const sum = await res.json();
+        renderSingleStats(sum.totalOriginalSize || 0, sum.totalCompressedSize || 0, sum.totalReferencesFound || 0);
+    });
+
+    const folderInput = document.getElementById("folderInput");
+    const pickFolderBtn = document.getElementById("pickFolderBtn");
+    const startBatchBtn = document.getElementById("startBatchBtn");
+    const folderSummary = document.getElementById("folderSummary");
+    const batchStatus = document.getElementById("batchStatus");
+    const batchBar = document.getElementById("batchBar");
+    const batchTable = document.getElementById("batchTable");
+    let batchFiles = [];
+
+    const refsChart = new Chart(document.getElementById("refsChart"), {
+        type: "line",
+        data: { labels: [], datasets: [{ label: "References", data: [], borderColor: "#fff", pointBackgroundColor: "#fff" }] },
+        options: {
+            responsive: true,
+            animation: { duration: 350 },
+            plugins: { legend: { labels: { color: "#ddd" } } },
+            scales: { x: { ticks: { color: "#bbb" } }, y: { ticks: { color: "#bbb" } } }
         }
+    });
 
-        // Logs functionality
-        let autoRefreshLogs = false;
-        let logRefreshInterval = null;
+    const ratioChart = new Chart(document.getElementById("ratioChart"), {
+        type: "line",
+        data: { labels: [], datasets: [{ label: "Ratio", data: [], borderColor: "#9b9b9b", pointBackgroundColor: "#9b9b9b" }] },
+        options: {
+            responsive: true,
+            animation: { duration: 350 },
+            plugins: { legend: { labels: { color: "#ddd" } } },
+            scales: { x: { ticks: { color: "#bbb" } }, y: { ticks: { color: "#bbb" } } }
+        }
+    });
 
-        function switchTab(tabName) {
+    pickFolderBtn.addEventListener("click", () => folderInput.click());
+    folderInput.addEventListener("change", () => {
+        batchFiles = Array.from(folderInput.files || []);
+        const total = batchFiles.reduce((a, f) => a + f.size, 0);
+        folderSummary.textContent = `${batchFiles.length} files selected (${fmtBytes(total)})`;
+        startBatchBtn.disabled = batchFiles.length === 0;
+    });
+
+    startBatchBtn.addEventListener("click", async () => {
+        if (batchFiles.length === 0) return;
+        startBatchBtn.disabled = true;
+        batchTable.innerHTML = "";
+        refsChart.data.labels = [];
+        refsChart.data.datasets[0].data = [];
+        refsChart.update();
+        ratioChart.data.labels = [];
+        ratioChart.data.datasets[0].data = [];
+        ratioChart.update();
+
+        let done = 0;
+        for (let i = 0; i < batchFiles.length; i++) {
+            const file = batchFiles[i];
+            batchStatus.textContent = `Processing ${i + 1}/${batchFiles.length}: ${file.name}`;
             try {
-                // Hide all tabs
-                document.querySelectorAll('.tab-content').forEach(tab => {
-                    if (tab) tab.classList.remove('active');
-                });
-                document.querySelectorAll('.tab').forEach(btn => {
-                    if (btn) btn.classList.remove('active');
-                });
+                const out = await compressFileBinary(file);
+                const ratio = out.original > 0 ? out.compressed / out.original : 0;
 
-                // Find and activate the correct tab button
-                const tabButtons = document.querySelectorAll('.tab');
-                if (tabName === 'single') {
-                    if (tabButtons[0]) tabButtons[0].classList.add('active');
-                    const singleTab = document.getElementById('single-tab');
-                    if (singleTab) singleTab.classList.add('active');
-                } else if (tabName === 'directory') {
-                    if (tabButtons[1]) tabButtons[1].classList.add('active');
-                    const directoryTab = document.getElementById('directory-tab');
-                    if (directoryTab) directoryTab.classList.add('active');
-                } else if (tabName === 'logs') {
-                    if (tabButtons[2]) tabButtons[2].classList.add('active');
-                    const logsTab = document.getElementById('logs-tab');
-                    if (logsTab) {
-                        logsTab.classList.add('active');
-                        // Only load logs if the container exists
-                        const logsContainer = document.getElementById('logsContainer');
-                        if (logsContainer) {
-                            loadLogs();
-                            if (autoRefreshLogs && !logRefreshInterval) {
-                                logRefreshInterval = setInterval(loadLogs, 2000);
-                            }
-                        }
-                    } else {
-                        console.error('Logs tab element not found');
-                    }
-                }
+                refsChart.data.labels.push(String(i + 1));
+                refsChart.data.datasets[0].data.push(out.refs);
+                refsChart.update();
 
-                // Stop auto-refresh if switching away from logs
-                if (tabName !== 'logs' && logRefreshInterval) {
-                    clearInterval(logRefreshInterval);
-                    logRefreshInterval = null;
-                }
-            } catch (error) {
-                console.error('Error in switchTab:', error);
+                ratioChart.data.labels.push(String(i + 1));
+                ratioChart.data.datasets[0].data.push(Number(ratio.toFixed(3)));
+                ratioChart.update();
+
+                batchTable.insertAdjacentHTML(
+                    "beforeend",
+                    `<tr><td>${i + 1}</td><td>${file.webkitRelativePath || file.name}</td><td>${fmtBytes(out.original)}</td><td>${fmtBytes(out.compressed)}</td><td>${out.refs}</td><td class="ok">OK</td></tr>`
+                );
+            } catch (err) {
+                batchTable.insertAdjacentHTML(
+                    "beforeend",
+                    `<tr><td>${i + 1}</td><td>${file.webkitRelativePath || file.name}</td><td>${fmtBytes(file.size)}</td><td>-</td><td>-</td><td class="err">ERROR</td></tr>`
+                );
             }
+            done++;
+            setBar(batchBar, (done / batchFiles.length) * 100);
         }
 
-        async function loadLogs() {
-            const serviceEl = document.getElementById('logService');
-            const linesEl = document.getElementById('logLines');
-            const container = document.getElementById('logsContainer');
+        batchStatus.textContent = `Batch done. ${done}/${batchFiles.length}`;
+        startBatchBtn.disabled = false;
+    });
 
-            if (!serviceEl || !linesEl || !container) {
-                console.error('Logs elements not found');
-                return;
-            }
-
-            const service = serviceEl.value;
-            const lines = linesEl.value;
-
-            try {
-                container.innerHTML = '<em>Loading logs...</em>';
-                const response = await fetch(`/api/admin/logs?service=${service}&lines=${lines}`);
-                const data = await response.json();
-                
-                if (data.logs) {
-                    // Highlight error/warning/success lines
-                    const logs = data.logs.split('\n').map(line => {
-                        const escaped = escapeHtml(line);
-                        if (line.includes('ERROR') || line.includes('❌') || line.includes('Failed') || line.includes('Exception')) {
-                            return `<span style="color: #f48771;">${escaped}</span>`;
-                        } else if (line.includes('WARNING') || line.includes('⚠️')) {
-                            return `<span style="color: #dcdcaa;">${escaped}</span>`;
-                        } else if (line.includes('SUCCESS') || line.includes('✅') || line.includes('Stored chunk') || line.includes('SUCCESS:')) {
-                            return `<span style="color: #4ec9b0;">${escaped}</span>`;
-                        } else if (line.includes('Storing vector') || line.includes('StoreVector')) {
-                            return `<span style="color: #569cd6;">${escaped}</span>`;
-                        }
-                        return escaped;
-                    }).join('\n');
-                    container.innerHTML = logs;
-                    // Scroll to bottom
-                    container.scrollTop = container.scrollHeight;
-                } else {
-                    container.innerHTML = '<em>No logs available</em>';
-                }
-            } catch (error) {
-                container.innerHTML = `<span style="color: #f48771;">Error loading logs: ${error.message}</span>`;
-            }
+    document.getElementById("loadStatsBtn").addEventListener("click", async () => {
+        const table = document.getElementById("statsTable");
+        table.innerHTML = "";
+        const res = await fetch("/api/compression/statistics?limit=200");
+        if (!res.ok) return;
+        const rows = await res.json();
+        if (!rows.length) {
+            table.innerHTML = `<tr><td colspan="6">No data</td></tr>`;
+            return;
         }
-
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        // Initialize on load
-        initChart();
-        loadStatistics();
-    </script>
+        rows.forEach(r => {
+            table.insertAdjacentHTML(
+                "beforeend",
+                `<tr><td>${r.fileName || "-"}</td><td>${fmtBytes(r.originalSize || 0)}</td><td>${fmtBytes(r.compressedSize || 0)}</td><td>${((r.compressionRatio || 0) * 100).toFixed(2)}%</td><td>${r.referencesFound || 0}</td><td>${(r.durationMs || 0).toFixed(0)}ms</td></tr>`
+            );
+        });
+    });
+})();
+</script>
 </body>
 </html>
-
