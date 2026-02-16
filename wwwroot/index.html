@@ -125,6 +125,26 @@
             to { transform: scale(1); opacity: 1; }
         }
         .small { color: var(--muted); font-size: 12px; }
+        .control-card {
+            border: 1px solid #2a2a2a;
+            border-radius: 8px;
+            padding: 10px;
+            background: #0d0d0d;
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .control-card label { color: #ddd; font-size: 13px; }
+        .control-card .value {
+            border: 1px solid #333;
+            border-radius: 999px;
+            padding: 4px 10px;
+            font-size: 12px;
+            color: #f0f0f0;
+            background: #111;
+        }
         .result {
             margin-top: 12px;
             border: 1px solid #2f2f2f;
@@ -208,11 +228,14 @@
             <div class="panel">
                 <h3>Compress Folder from Browser</h3>
                 <div class="small">Select a local folder. Files are uploaded as bytes and compressed server-side. This works on remote clusters.</div>
+                <div class="control-card">
+                    <label for="batchConcurrencyInput">Concurrent Files</label>
+                    <input id="batchConcurrencyInput" type="number" min="1" max="32" value="6" style="width: 86px; background:#111; border:1px solid #333; color:#eee; border-radius:8px; padding:8px;">
+                    <span class="value" id="batchConcurrencyValue">6</span>
+                </div>
                 <div class="row">
                     <button class="btn secondary" id="pickFolderBtn">Pick Folder</button>
                     <input id="folderInput" type="file" webkitdirectory directory multiple>
-                    <label class="small" for="batchConcurrencyInput">Parallel files</label>
-                    <input id="batchConcurrencyInput" type="number" min="1" max="32" value="6" style="width: 86px; background:#111; border:1px solid #333; color:#eee; border-radius:8px; padding:8px;">
                     <button class="btn" id="startBatchBtn" disabled>Start Batch</button>
                 </div>
                 <div class="small" id="batchConcurrencyHint">Parallel files controls how many files are compressed at once (recommended 6-12).</div>
@@ -410,6 +433,7 @@
     const pickFolderBtn = document.getElementById("pickFolderBtn");
     const startBatchBtn = document.getElementById("startBatchBtn");
     const batchConcurrencyInput = document.getElementById("batchConcurrencyInput");
+    const batchConcurrencyValue = document.getElementById("batchConcurrencyValue");
     const batchConcurrencyHint = document.getElementById("batchConcurrencyHint");
     const folderSummary = document.getElementById("folderSummary");
     const batchStatus = document.getElementById("batchStatus");
@@ -460,13 +484,17 @@
         const suggested = Math.max(6, Math.min(12, Math.floor((navigator.hardwareConcurrency || 8) / 2)));
         batchConcurrencyInput.value = String(suggested);
     }
+    batchConcurrencyValue.textContent = batchConcurrencyInput.value;
     batchConcurrencyHint.textContent = `Parallel files controls how many files are compressed at once (recommended 6-12). Current: ${batchConcurrencyInput.value}`;
-    batchConcurrencyInput.addEventListener("change", () => {
+    const updateConcurrencyUi = () => {
         const clamped = clampBatchConcurrency(batchConcurrencyInput.value);
         batchConcurrencyInput.value = String(clamped);
+        batchConcurrencyValue.textContent = String(clamped);
         localStorage.setItem("crossv9.batch.parallel", String(clamped));
         batchConcurrencyHint.textContent = `Parallel files controls how many files are compressed at once (recommended 6-12). Current: ${clamped}`;
-    });
+    };
+    batchConcurrencyInput.addEventListener("change", updateConcurrencyUi);
+    batchConcurrencyInput.addEventListener("input", updateConcurrencyUi);
 
     startBatchBtn.addEventListener("click", async () => {
         if (batchFiles.length === 0) return;
