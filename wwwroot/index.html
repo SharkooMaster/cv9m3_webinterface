@@ -215,6 +215,7 @@
                     <input id="batchConcurrencyInput" type="number" min="1" max="32" value="6" style="width: 86px; background:#111; border:1px solid #333; color:#eee; border-radius:8px; padding:8px;">
                     <button class="btn" id="startBatchBtn" disabled>Start Batch</button>
                 </div>
+                <div class="small" id="batchConcurrencyHint">Parallel files controls how many files are compressed at once (recommended 6-12).</div>
                 <div class="small" id="folderSummary">No files selected</div>
                 <div class="progress"><div class="bar" id="batchBar"></div></div>
                 <div class="small" id="batchStatus">Idle</div>
@@ -409,6 +410,7 @@
     const pickFolderBtn = document.getElementById("pickFolderBtn");
     const startBatchBtn = document.getElementById("startBatchBtn");
     const batchConcurrencyInput = document.getElementById("batchConcurrencyInput");
+    const batchConcurrencyHint = document.getElementById("batchConcurrencyHint");
     const folderSummary = document.getElementById("folderSummary");
     const batchStatus = document.getElementById("batchStatus");
     const batchBar = document.getElementById("batchBar");
@@ -445,6 +447,27 @@
         startBatchBtn.disabled = batchFiles.length === 0;
     });
 
+    function clampBatchConcurrency(v) {
+        const n = Number(v);
+        if (!Number.isFinite(n)) return 6;
+        return Math.max(1, Math.min(32, Math.floor(n)));
+    }
+
+    const storedBatchConcurrency = localStorage.getItem("crossv9.batch.parallel");
+    if (storedBatchConcurrency !== null) {
+        batchConcurrencyInput.value = String(clampBatchConcurrency(storedBatchConcurrency));
+    } else {
+        const suggested = Math.max(6, Math.min(12, Math.floor((navigator.hardwareConcurrency || 8) / 2)));
+        batchConcurrencyInput.value = String(suggested);
+    }
+    batchConcurrencyHint.textContent = `Parallel files controls how many files are compressed at once (recommended 6-12). Current: ${batchConcurrencyInput.value}`;
+    batchConcurrencyInput.addEventListener("change", () => {
+        const clamped = clampBatchConcurrency(batchConcurrencyInput.value);
+        batchConcurrencyInput.value = String(clamped);
+        localStorage.setItem("crossv9.batch.parallel", String(clamped));
+        batchConcurrencyHint.textContent = `Parallel files controls how many files are compressed at once (recommended 6-12). Current: ${clamped}`;
+    });
+
     startBatchBtn.addEventListener("click", async () => {
         if (batchFiles.length === 0) return;
         startBatchBtn.disabled = true;
@@ -463,6 +486,7 @@
         let cursor = 0;
         const requestedConcurrency = Number(batchConcurrencyInput.value || 6);
         const maxConcurrency = Math.max(1, Math.min(32, requestedConcurrency, batchFiles.length));
+        localStorage.setItem("crossv9.batch.parallel", String(maxConcurrency));
 
         const updateBatchStatus = () => {
             batchStatus.textContent = `Running: done ${done}/${batchFiles.length}, active ${active}, failed ${failed}, parallel ${maxConcurrency}`;
