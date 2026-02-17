@@ -8,7 +8,9 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton<LocalCompressionService>();
 builder.Services.AddSingleton<DynamicResourceManager>();
-builder.Services.AddSingleton<CompressionService>();
+// Use scoped lifetime so each request gets its own Cross gRPC client/channel selection.
+// A singleton can pin long-lived HTTP/2 traffic to a single Cross pod.
+builder.Services.AddScoped<CompressionService>();
 builder.Services.AddSingleton<StatisticsService>();
 builder.Services.AddSingleton<DatabaseService>();
 builder.Services.AddSingleton<ChunkStorageService>();
