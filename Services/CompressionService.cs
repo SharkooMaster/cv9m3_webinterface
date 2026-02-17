@@ -1,9 +1,11 @@
 using CrossService;
 using Grpc.Net.Client;
+using Grpc.Net.Client.Configuration;
 using Google.Protobuf;
 using System.Net.Http;
 using System.Buffers;
 using System.Security.Cryptography;
+using Grpc.Core;
 
 namespace WebInterface.Services;
 
@@ -52,9 +54,40 @@ public class CompressionService
             url = "http://localhost:5000";
         }
         
-        // Use optimized channel options for local mode
+        // Use optimized base channel options
         var channelOptions = _localCompressionService.GetOptimizedChannelOptions();
-        _channel = GrpcChannel.ForAddress(url, channelOptions);
+
+        // For Kubernetes service names (non-localhost), use DNS resolver + round-robin LB
+        // so multiple Cross pods are used from a single webinterface instance.
+        if (Uri.TryCreate(url, UriKind.Absolute, out var uri) && !uri.Host.Equals("localhost", StringComparison.OrdinalIgnoreCase) && uri.Host != "127.0.0.1")
+        {
+            var grpcUri = $"dns:///{uri.Host}:{uri.Port}";
+            channelOptions.ServiceConfig = new ServiceConfig
+            {
+                LoadBalancingConfigs = { new RoundRobinConfig() },
+                MethodConfigs =
+                {
+                    new MethodConfig
+                    {
+                        Names = { MethodName.Default },
+                        RetryPolicy = new RetryPolicy
+                        {
+                            MaxAttempts = 3,
+                            InitialBackoff = TimeSpan.FromMilliseconds(150),
+                            MaxBackoff = TimeSpan.FromSeconds(1),
+                            BackoffMultiplier = 2,
+                            RetryableStatusCodes = { StatusCode.Unavailable, StatusCode.ResourceExhausted }
+                        }
+                    }
+                }
+            };
+            _channel = GrpcChannel.ForAddress(grpcUri, channelOptions);
+        }
+        else
+        {
+            _channel = GrpcChannel.ForAddress(url, channelOptions);
+        }
+
         _client = new FileService.FileServiceClient(_channel);
         return _client;
     }
