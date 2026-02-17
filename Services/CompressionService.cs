@@ -6,6 +6,8 @@ using System.Net.Http;
 using System.Buffers;
 using System.Security.Cryptography;
 using Grpc.Core;
+using System.Net;
+using System.Collections.Concurrent;
 
 namespace WebInterface.Services;
 
@@ -16,8 +18,11 @@ public class CompressionService
     private readonly LocalCompressionService _localCompressionService;
     private readonly bool _useLocal;
     private readonly Cross.Services.Cross.CrossService? _localCrossService;
-    private GrpcChannel? _channel;
-    private FileService.FileServiceClient? _client;
+    private static readonly ConcurrentDictionary<string, GrpcChannel> _channelByEndpoint = new();
+    private static readonly object _crossResolveLock = new object();
+    private static DateTime _crossResolveAt = DateTime.MinValue;
+    private static string[] _resolvedCrossIps = Array.Empty<string>();
+    private static int _crossRoundRobinCounter = -1;
 
     public CompressionService(
         IConfiguration configuration, 
@@ -39,9 +44,6 @@ public class CompressionService
 
     private FileService.FileServiceClient GetClient()
     {
-        if (_client != null)
-            return _client;
-
         // Enable h2c for local (unencrypted) gRPC endpoints.
         AppContext.SetSwitch("System.Net.Http.SocketsHttpHandler.Http2UnencryptedSupport", true);
 
@@ -53,43 +55,78 @@ public class CompressionService
         {
             url = "http://localhost:5000";
         }
-        
-        // Use optimized base channel options
-        var channelOptions = _localCompressionService.GetOptimizedChannelOptions();
 
-        // For Kubernetes service names (non-localhost), use DNS resolver + round-robin LB
-        // so multiple Cross pods are used from a single webinterface instance.
-        if (Uri.TryCreate(url, UriKind.Absolute, out var uri) && !uri.Host.Equals("localhost", StringComparison.OrdinalIgnoreCase) && uri.Host != "127.0.0.1")
+        string endpoint = url;
+        if (Uri.TryCreate(url, UriKind.Absolute, out var uri)
+            && !uri.Host.Equals("localhost", StringComparison.OrdinalIgnoreCase)
+            && uri.Host != "127.0.0.1")
         {
-            var grpcUri = $"dns:///{uri.Host}:{uri.Port}";
-            channelOptions.ServiceConfig = new ServiceConfig
+            // Explicit per-request endpoint selection to avoid sticky single-pod behavior.
+            // Resolve the headless service to pod IPs and round-robin across them.
+            var now = DateTime.UtcNow;
+            lock (_crossResolveLock)
             {
-                LoadBalancingConfigs = { new RoundRobinConfig() },
-                MethodConfigs =
+                if (_resolvedCrossIps.Length == 0 || now - _crossResolveAt > TimeSpan.FromSeconds(15))
                 {
-                    new MethodConfig
+                    try
                     {
-                        Names = { MethodName.Default },
-                        RetryPolicy = new RetryPolicy
-                        {
-                            MaxAttempts = 3,
-                            InitialBackoff = TimeSpan.FromMilliseconds(150),
-                            MaxBackoff = TimeSpan.FromSeconds(1),
-                            BackoffMultiplier = 2,
-                            RetryableStatusCodes = { StatusCode.Unavailable, StatusCode.ResourceExhausted }
-                        }
+                        _resolvedCrossIps = Dns.GetHostAddresses(uri.Host)
+                            .Where(ip => ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                            .Select(ip => ip.ToString())
+                            .Distinct()
+                            .ToArray();
+                        _crossResolveAt = now;
+                        _logger.LogInformation("Resolved Cross targets {Host} -> {Count} IPs", uri.Host, _resolvedCrossIps.Length);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to resolve Cross host {Host}; falling back to service URL", uri.Host);
+                        _crossResolveAt = now;
                     }
                 }
-            };
-            _channel = GrpcChannel.ForAddress(grpcUri, channelOptions);
-        }
-        else
-        {
-            _channel = GrpcChannel.ForAddress(url, channelOptions);
+            }
+
+            if (_resolvedCrossIps.Length > 0)
+            {
+                int idx = Math.Abs(Interlocked.Increment(ref _crossRoundRobinCounter)) % _resolvedCrossIps.Length;
+                endpoint = $"http://{_resolvedCrossIps[idx]}:{uri.Port}";
+            }
         }
 
-        _client = new FileService.FileServiceClient(_channel);
-        return _client;
+        var channel = _channelByEndpoint.GetOrAdd(endpoint, ep =>
+        {
+            // For direct IP endpoints, no DNS LB policy is needed.
+            // For service fallback, keep DNS round-robin enabled.
+            var opts = _localCompressionService.GetOptimizedChannelOptions();
+            if (Uri.TryCreate(ep, UriKind.Absolute, out var epu)
+                && !IPAddress.TryParse(epu.Host, out _)
+                && !epu.Host.Equals("localhost", StringComparison.OrdinalIgnoreCase)
+                && epu.Host != "127.0.0.1")
+            {
+                opts.ServiceConfig = new ServiceConfig
+                {
+                    LoadBalancingConfigs = { new RoundRobinConfig() },
+                    MethodConfigs =
+                    {
+                        new MethodConfig
+                        {
+                            Names = { MethodName.Default },
+                            RetryPolicy = new RetryPolicy
+                            {
+                                MaxAttempts = 3,
+                                InitialBackoff = TimeSpan.FromMilliseconds(150),
+                                MaxBackoff = TimeSpan.FromSeconds(1),
+                                BackoffMultiplier = 2,
+                                RetryableStatusCodes = { StatusCode.Unavailable, StatusCode.ResourceExhausted }
+                            }
+                        }
+                    }
+                };
+            }
+            return GrpcChannel.ForAddress(ep, opts);
+        });
+
+        return new FileService.FileServiceClient(channel);
     }
 
     public async Task<byte[]> CompressFileAsync(byte[] fileBytes, CancellationToken cancellationToken = default)
