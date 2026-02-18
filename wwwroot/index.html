@@ -187,13 +187,13 @@
             <div class="sub">Cluster-safe browser upload flow. No server-local file path required.</div>
         </div>
         <div class="chip" id="modeChip">Mode: Browser Upload</div>
-    </div>
+        </div>
 
-    <div class="tabs">
+            <div class="tabs">
         <button class="tab active" data-tab="single">Single File</button>
         <button class="tab" data-tab="batch">Folder / Batch</button>
         <button class="tab" data-tab="stats">Statistics</button>
-    </div>
+            </div>
 
     <div id="single" class="tab-pane">
         <div class="grid">
@@ -219,9 +219,9 @@
                     <div class="stat"><div class="k">References</div><div class="v" id="sRefs">0</div></div>
                 </div>
                 <div style="margin-top:12px;"><canvas id="singleChart" height="160"></canvas></div>
+                </div>
+                    </div>
             </div>
-        </div>
-    </div>
 
     <div id="batch" class="tab-pane hidden">
         <div class="single-col">
@@ -247,12 +247,12 @@
                 <div class="panel">
                     <h3>References Per File</h3>
                     <canvas id="refsChart" height="170"></canvas>
-                </div>
+        </div>
                 <div class="panel">
                     <h3>Compression Ratio Per File</h3>
                     <canvas id="ratioChart" height="170"></canvas>
                 </div>
-            </div>
+                </div>
             <div class="panel">
                 <h3>Batch Results</h3>
                 <div class="table-wrap">
@@ -263,9 +263,9 @@
                         <tbody id="batchTable"></tbody>
                     </table>
                 </div>
+                </div>
             </div>
         </div>
-    </div>
 
     <div id="stats" class="tab-pane hidden">
         <div class="panel">
@@ -278,10 +278,10 @@
                 </table>
             </div>
         </div>
+        </div>
     </div>
-</div>
 
-<script>
+    <script>
 (() => {
     const tabs = document.querySelectorAll(".tab");
     tabs.forEach(btn => btn.addEventListener("click", () => {
@@ -322,7 +322,7 @@
             e.preventDefault();
             singleDrop.classList.add("drag");
         });
-    });
+        });
     ["dragleave", "drop"].forEach(evt => {
         singleDrop.addEventListener(evt, e => {
             e.preventDefault();
@@ -364,15 +364,15 @@
     }
 
     async function compressFileBinary(file, statusLabel) {
-        const formData = new FormData();
+            const formData = new FormData();
         formData.append("file", file);
 
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), 1000 * 60 * 20);
-        try {
+            try {
             const res = await fetch("/api/compression/compress-binary", {
                 method: "POST",
-                body: formData,
+                    body: formData,
                 signal: controller.signal
             });
             if (!res.ok) {
@@ -480,7 +480,7 @@
     const storedBatchConcurrency = localStorage.getItem("crossv9.batch.parallel");
     if (storedBatchConcurrency !== null) {
         batchConcurrencyInput.value = String(clampBatchConcurrency(storedBatchConcurrency));
-    } else {
+                } else {
         const suggested = Math.max(6, Math.min(12, Math.floor((navigator.hardwareConcurrency || 8) / 2)));
         batchConcurrencyInput.value = String(suggested);
     }
@@ -574,8 +574,8 @@
         const rows = await res.json();
         if (!rows.length) {
             table.innerHTML = `<tr><td colspan="6">No data</td></tr>`;
-            return;
-        }
+                return;
+            }
         rows.forEach(r => {
             table.insertAdjacentHTML(
                 "beforeend",
@@ -584,6 +584,6 @@
         });
     });
 })();
-</script>
+    </script>
 </body>
 </html>
